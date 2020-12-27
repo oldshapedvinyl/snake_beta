@@ -1,0 +1,66 @@
+body {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.app_container {
+    width: calc(100%);
+    height: calc(100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-size: cover;
+    background-position: center;
+}
+
+.tool_panel,
+.app {
+    width: calc(100%);
+}
+
+.tool_panel {
+    height: 10vh;
+    background-color: rgba(0, 0, 255, 0.3);
+}
+
+.app {
+    height: 90vh;
+    width: calc(100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.app_scene {
+    position: relative;
+    width: 90vh;
+    height: 90vh;
+    background-color: rgba(102, 205, 170, 0.5);
+    overflow: hidden;
+}
+
+obj, snake {
+    position: absolute;
+    overflow: hidden;
+}
+
+obj {
+    background: rgba(255, 215, 0, 0.7);
+    border-radius: 30%;
+}
+
+snake {
+    transition: left 400ms linear, top 400ms linear;
+    background: rgba(173, 255, 47, 0.7);
+    border-radius: 50%;
+}
+
+@media screen and (max-aspect-ratio: 1/1) {
+    .app_scene {
+        width: 90vw;
+        height: 90vw;
+    }
+}
