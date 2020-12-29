@@ -66,12 +66,14 @@ var snakeApi = {
 
             return snakeApi.helpers.randomizer(beg, end);
         },
+        // Get random double-dimension coord from range
         getRandomDoubleCoord: function(xOffset, gridWidth, yOffset, gridHeight) {
             return {
                 x: snakeApi.helpers.getRandomSingleCoord(xOffset, gridWidth),
                 y: snakeApi.helpers.getRandomSingleCoord(yOffset, gridHeight),
             };
         },
+        // Get block size in percent by current grid
         getBlockSize: function(gridWidth, gridHeight) {
             var isValidArguments = (gridWidth >= 1
                 && gridHeight >= 1);
@@ -90,6 +92,7 @@ var snakeApi = {
 
             return blockSize;
         },
+        // Get block offset in percent by current grid and block coords
         getBlockOffset: function(gridWidth, gridHeight, coords) {
             var isValidArguments = snakeApi.types.isObject(coords)
                 && coords.x
@@ -111,6 +114,7 @@ var snakeApi = {
 
             return blockOffset;
         },
+        // Get block's main params
         getBlockParams: function(type, coords, appSceneParams) {
             var blockSize = snakeApi.helpers.getBlockSize(appSceneParams.width, appSceneParams.height);
             var blockOffset = snakeApi.helpers.getBlockOffset(appSceneParams.width, appSceneParams.height, coords);
@@ -125,12 +129,18 @@ var snakeApi = {
 
             return blockParams;
         },
+        // Get all snake blocks
         getSnakeBlocks: function() {
             return document.querySelectorAll('snake');
         },
+        // Guess what
         getSnakeHead: function() {
             return document.querySelector('snake.head');
         },
+        getFoodBlock: function() {
+            return document.querySelector('food');
+        },
+        // Get next snakeHead's coordinate by current direction
         getNextCoordsByDirection: function(coords, currentDirection) {
             var x = coords.x;
             var y = coords.y;
@@ -156,6 +166,7 @@ var snakeApi = {
                 newY: y,
             };
         },
+        // Check if current direction is from predefined values range
         isCurrentDirection: function(snakeParams) {
             return snakeParams.directions.some(function(dir) {
                 return snakeParams.currentDirection === dir;
@@ -270,7 +281,9 @@ function gameInit() {
                 currentDirection: 'null',
                 directions: ['right', 'down', 'left', 'up'],
                 headCoords: {},
+                defaultLength: 5,
                 length: 5,
+                defaultSpeed: 200,
                 speed: 200,
             },
         },
@@ -332,28 +345,59 @@ function gameInit() {
         }
     }
 
-    function createSingleEnviromentObjectCoords() {
+    function checkIfCoordsExist(existingCoords, coordsToCheck) {
+        return existingCoords.some(function(coords) {
+            return coords.x === coordsToCheck.x && coords.y === coordsToCheck.y;
+        });
+    }
+
+    function createSingleObjectCoords(options) {
         var coords = helpers.getRandomDoubleCoord(1, appSceneParams.width, 1, appSceneParams.height);
 
-        var isDisabledByBaseZone = snakeParams.baseZone.some(function(baseCoords) {
-            return baseCoords.x === coords.x && baseCoords.y === coords.y;
-        });
-        var isDisabledByAnotherEnvObj = appScene.enviromentObjects.some(function(envCoords) {
-            return envCoords.x === coords.x && envCoords.y === coords.y;
-        });
+        var isDisabledByBaseZone = false;
+        var isDisabledBySnake = false;
+        var isDisabledByEnv = false;
+        var isDisabledByFood = false;
 
-        if (!isDisabledByBaseZone && !isDisabledByAnotherEnvObj) {
-            engine.createBlockCoords(coords, appScene.enviromentObjects);
+        if (options.isBaseZoneException) {
+            isDisabledByBaseZone = checkIfCoordsExist(snakeParams.baseZone, coords);
+        }
+
+        if (options.isSnakeException) {
+            isDisabledBySnake = checkIfCoordsExist(snakeParams.bodyCoords, coords);
+        }
+
+        if (options.isEnvObjectsException) {
+            isDisabledByEnv = checkIfCoordsExist(appScene.enviromentObjects, coords);
+        }
+
+        if (options.isFoodException) {
+            isDisabledByFood = checkIfCoordsExist(appScene.foodObjects, coords);
+        }
+
+        if (!isDisabledByBaseZone
+                && !isDisabledBySnake
+                && !isDisabledByEnv
+                && !isDisabledByFood) {
+            engine.createBlockCoords(coords, options.store);
 
             return;
         }
 
-        createSingleEnviromentObjectCoords();
+        createSingleObjectCoords(options);
     }
 
     function createAllEnviromentObjectsCoords() {
+        var envObjOptions = {
+            isBaseZoneException: true,
+            isSnakeException: false,
+            isEnvObjectsException: true,
+            isFoodException: false,
+            store: appScene.enviromentObjects,
+        };
+
         for (var num = 1; num <= appSceneParams.envObjects; num++) {
-            createSingleEnviromentObjectCoords();
+            createSingleObjectCoords(envObjOptions);
         }
     }
 
@@ -377,6 +421,47 @@ function gameInit() {
     }
 
     drawEnviroment();
+
+    // Food logic
+    function createFoodCoords() {
+        var foodOptions = {
+            isBaseZoneException: false,
+            isSnakeException: true,
+            isEnvObjectsException: true,
+            isFoodException: true,
+            store: appScene.foodObjects,
+        };
+
+        createSingleObjectCoords(foodOptions);
+    }
+
+    function drawFood() {
+        var foodCoords = appScene.foodObjects[0];
+
+        if (foodCoords) {
+            var blockParams = helpers.getBlockParams('food', foodCoords, appSceneParams);
+
+            engine.drawBlock(appSceneContainer, blockParams);
+        }
+    }
+
+    function destroyFood() {
+        if (appScene.foodObjects.length) {
+            appScene.foodObjects = [];
+        }
+
+        var food = helpers.getFoodBlock();
+
+        if (food) {
+            food.parentNode.removeChild(food);
+        }
+    }
+
+    function refreshFood() {
+        destroyFood();
+        createFoodCoords();
+        drawFood();
+    }
 
     // Inserting snake object blocks coords
     function createSnakeBodyCoords() {
@@ -421,6 +506,7 @@ function gameInit() {
     }
 
     drawSnake();
+    refreshFood();
 
     // Mark snake's blocks as variables
     var snakeBlocks = helpers.getSnakeBlocks();
@@ -494,6 +580,11 @@ function gameInit() {
                 return;
             }
 
+            var isFoodByNextStep = checkIfCoordsExist(appScene.foodObjects, {
+                x: newHeadCoords.newX,
+                y: newHeadCoords.newY,
+            });
+
             if (!gameOver && isNextStep) {
                 var newCoords = Array.prototype.reduce
                     .call(snakeParams.bodyCoords, function(newCoordsList, coord, index) {
@@ -514,6 +605,24 @@ function gameInit() {
                                 y: newY,
                             });
                         }
+
+                        if (index === (snakeParams.bodyCoords.length - 1)
+                            && isFoodByNextStep) {
+                            var additionalBlockCoords = snakeParams.bodyCoords[snakeParams.bodyCoords.length - 1];
+
+                            newCoordsList.push(additionalBlockCoords);
+
+                            var blockParams = helpers.getBlockParams('snake', additionalBlockCoords, appSceneParams);
+                            engine.drawBlock(appSceneContainer, blockParams);
+                            snakeBlocks = helpers.getSnakeBlocks();
+                            snakeParams.speed -= (snakeParams.speed * 0.05);
+                            stopMoving();
+                            startMoving();
+                            setSnakeTransition(snakeBlocks);
+
+                            refreshFood();
+                        }
+
                         return newCoordsList;
                     }, []);
 
@@ -561,10 +670,13 @@ function gameInit() {
         destroyEnviroment();
         destroySnake();
 
+        snakeParams.speed = snakeParams.defaultSpeed;
+
         gameOver = false;
 
         drawEnviroment();
         drawSnake();
+        refreshFood();
         snakeBlocks = helpers.getSnakeBlocks();
         snakeBlocks[0].classList.add('head');
 

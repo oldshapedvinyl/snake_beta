@@ -42,7 +42,7 @@ body {
     overflow: hidden;
 }
 
-obj, snake {
+obj, snake, food {
     position: absolute;
     overflow: hidden;
 }
@@ -56,6 +56,24 @@ snake {
     transition: left 400ms linear, top 400ms linear;
     background: rgba(173, 255, 47, 0.7);
     border-radius: 50%;
+}
+
+@keyframes food-animation {
+    0% {
+        transform: scale(0.9);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(0.9);
+    }
+}
+
+food {
+    background: rgba(255, 0, 0, 0.5);
+    border-radius: 30%;
+    animation: food-animation 2s infinite;
 }
 
 @media screen and (max-aspect-ratio: 1/1) {
