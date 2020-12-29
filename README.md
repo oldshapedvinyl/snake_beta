@@ -9,7 +9,7 @@ Restart: blue tool-panel at top of the screen.
 
 Coming up next:
 -Controls via touch;
--Food logic with speed and length increase;
+-Food logic with speed and length increase - done;
 -Score system;
 -Sprite animation, sound and music effects;
 -Tool panel, customizable game options;
