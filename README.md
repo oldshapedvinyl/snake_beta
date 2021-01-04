@@ -4,6 +4,9 @@ Vanilla JS. 1-st early-demo-beta-pre-release-RND-version
 GH-Pages:
 https://oldshapedvinyl.github.io/snake_beta/
 
+Vue version:
+https://oldshapedvinyl.github.io/snake-vue/
+
 Controls: keyboard direction buttons.
 Restart: blue tool-panel at top of the screen.
 
@@ -13,4 +16,4 @@ Coming up next:
 -Score system;
 -Sprite animation, sound and music effects;
 -Tool panel, customizable game options;
--Rewrite stable version on vue.js with router and vuex.
+-Rewrite stable version on vue.js with router and vuex (done).
