@@ -1,5 +1,6 @@
 # snake_beta
 Vanilla JS. 1-st early-demo-beta-pre-release-RND-version
+
 Developement moved to vue.js
 
 GH-Pages:
